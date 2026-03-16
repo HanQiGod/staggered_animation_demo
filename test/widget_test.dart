@@ -1,30 +1,33 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:staggered_animation_demo/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('首页渲染交错动画示例并可播放一次', (WidgetTester tester) async {
+    await tester.pumpWidget(const StaggeredShowcaseApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('一个控制器，多个动画'), findsOneWidget);
+    expect(find.text('点击舞台播放交错动画'), findsOneWidget);
+    expect(find.byKey(const Key('stagger-demo-box')), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    final Finder boxFinder = find.byKey(const Key('stagger-demo-box'));
+    final Finder stageFinder = find.byKey(const Key('stagger-demo-stage'));
+
+    expect(tester.getSize(boxFinder).width, 50);
+    expect(tester.getSize(boxFinder).height, 50);
+
+    await tester.tap(stageFinder);
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('播放中...'), findsOneWidget);
+    expect(tester.getSize(boxFinder).width, greaterThan(50));
+
+    await tester.pumpAndSettle();
+
+    final Size resetSize = tester.getSize(boxFinder);
+    expect(resetSize.width, inInclusiveRange(49.0, 51.0));
+    expect(resetSize.height, inInclusiveRange(49.0, 51.0));
+    expect(find.text('播放一次'), findsOneWidget);
   });
 }
